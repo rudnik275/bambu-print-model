@@ -1,0 +1,11 @@
+{
+  "name": "bambu-print-model",
+  "displayName": "Bambu Print Model",
+  "version": "0.1.0",
+  "description": "Prepare any model (STL, 3MF, STEP, MakerWorld project) for printing on a Bambu Lab printer: orientation, presets, supports, plate splitting, a 16-check print forecast, and a sliced file that opens in Bambu Studio ready to print. Built from real printing experience, not from defaults.",
+  "author": { "name": "Dmitriy Rudnik", "url": "https://github.com/rudnik275" },
+  "homepage": "https://github.com/rudnik275/bambu-print-model",
+  "repository": "https://github.com/rudnik275/bambu-print-model",
+  "license": "MIT",
+  "keywords": ["3d-printing", "bambu-lab", "bambu-studio", "slicing", "filament-calibration"]
+}
