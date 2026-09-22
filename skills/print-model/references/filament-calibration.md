@@ -147,7 +147,32 @@ Getting it into Studio — either way:
   - Windows `%APPDATA%\BambuStudio\user\<id>\filament\`
   - Linux `~/.config/BambuStudio/user/<id>/filament/`
 
-Studio reads that folder at start: after writing files there, restart Studio (or use Import Configs instead). Do not edit files under that folder while Studio is running — cloud sync overwrites them.
+Studio reads that folder at start: after writing files there, restart Studio (or use Import Configs instead).
+
+**The preset lives in the Bambu cloud; that folder is a local mirror.** This is the part that surprises: deleting or
+renaming a `.json` by hand does nothing lasting, because on the next start Studio syncs the cloud copy back, with its
+old name and its old contents. The `.info` beside each preset is the channel for saying otherwise, and it is only read
+with **Studio closed**:
+
+| `sync_info` | Effect on next start |
+| --- | --- |
+| `create` (and an empty `setting_id`) | Studio registers a new preset in the cloud and fills the `setting_id` in |
+| `delete` (keeping the existing `setting_id`) | Studio asks the cloud to drop that preset; it stops coming back |
+| empty | already in sync, leave it alone |
+
+So **renaming is create + delete, not a file rename**: write the new pair with `sync_info = create` and an empty
+`setting_id`, mark the old `.info` `sync_info = delete` with its `setting_id` intact, then start Studio. Renaming the
+files alone produced both presets side by side, the old one empty, pulled straight back from the cloud.
+
+**An almost-empty preset file means two opposite things, and telling them apart matters.** Studio stores only what
+differs from the parent. A preset inheriting a brand profile that already carries temperature and flow ceiling stores
+just the one key that differs, and that is correct. A preset inheriting a `Generic …` profile must carry **every**
+calibrated value explicitly, so the same near-empty file there means *not calibrated*. Read the parent before judging.
+A calibrated PETG spool once printed for a full day while Studio's own preset was a bare clone of `Generic PETG`: the
+prints were correct because the project carries the values in `different_settings_to_system`, but anything asking
+Studio which filaments are calibrated answered "none".
+
+Verify by reading the file back **after a restart**, not right after writing it.
 
 Record the values somewhere durable (this skill keeps a table of calibrated filaments with the spool, the values and the date of calibration) and recalibrate when the spool's manufacturer or product line changes.
 
