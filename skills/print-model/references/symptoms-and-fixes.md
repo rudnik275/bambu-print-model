@@ -51,7 +51,23 @@ Settings alone do not remove the line completely; a chamfer in the design + sett
 
 **Cause.** On small layers (the top of a vase, narrow sections) the slicer slows down for cooling → slower flow → hotter plastic → gloss; fast sections come out matte. Plus the overhang slowdown at the bottom.
 
-**Fix.** `slow_down_for_layer_cooling = 0` (typical Bambu PLA preset: 1 — 6 s / min 20 mm/s); raise the overhang speed slightly and lower the outer wall speed — an even surface. Careful: too fast at the top → overheating and scrap. Orca has "don't slow down outer walls" (the infill slows, not the wall) — Studio does not.
+**Fix.** `slow_down_for_layer_cooling = 0` (typical Bambu PLA preset: 1 — 6 s / min 20 mm/s); raise the overhang speed slightly and lower the outer wall speed — an even surface. Careful: too fast at the top → overheating and scrap. **`no_slow_down_for_cooling_on_outwalls = 1`** (Bambu default: 0) — the layer-time stretch is taken out of the
+internal features instead of the outer wall. This key **does exist in Bambu Studio** (an earlier version of this file
+said it was Orca-only); measured on a 600-layer PETG shell with the slowdown forced on, outer wall 153 → 181 mm/s and
+its layer-to-layer spread 31 → 20 mm/s, while inner wall and sparse infill absorbed the stretch (165 → 152, 166 → 153);
+total time 6:53 → 6:51. It is in the always-package.
+
+**The fan is the other half of this, and it is per layer, not per feature.** Bambu interpolates fan speed between
+`fan_min_speed` at `fan_cooling_layer_time` and `fan_max_speed` at `slow_down_layer_time`; a geometry change that
+alters layer time therefore changes the sheen of the outer wall, and no setting gives the outer wall its own cooling
+(only overhangs and bridges have their own `overhang_fan_speed`). Measured on a PETG shell whose layer time jumped
+14.9 s → 58–83 s where the front lips begin: fan 79 % → 40 %, a visible gloss band exactly between those heights, and
+**35 distinct fan values over the print, 20 of them on the outer wall alone** — the band the eye catches is only the
+sharpest step of a continuous drift. Setting `fan_min_speed = fan_max_speed` makes it a constant (5 values left, all
+from the start G-code and the overhang override) at no cost in time or plastic (6:34 vs 6:33, 199.3 g both). Pick the
+value the bulk of the part already prints at. What is sacrificed on PETG: the thick slow layers now get roughly double
+the cooling they had, so layer adhesion in that band is weaker and a large flat part is slightly more prone to lifting
+— judge it against how much of the part is in that band and whether it carries load.
 
 ## 6. Patterns and sequence
 
