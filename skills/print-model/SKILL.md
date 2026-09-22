@@ -35,7 +35,7 @@ Done when every body is a mesh on disk and you know which bodies are separate pa
 
 - Fit: bounding box against `printable_area` and `printable_height` of the machine preset. Does not fit → ask about scale or splitting; never decide that silently.
 - Mesh: round things look round (dense triangles on fillets). A big triangle count is fine; Studio's "simplify model" warning is ignored.
-- Trouble spots: overhangs past ~45°, bridges, thin standing features, a large flat sole, inner floors or shelves inside walls ([symptoms-and-fixes.md](references/symptoms-and-fixes.md) §1: a floor line, best removed by a chamfer in the design), narrow places and small bars (gap fill), shallow slopes (stair-steps — `scripts/mesh_slopes.py`, check 15), hollow bottoms or tall narrow parts (brim at once, check 10).
+- Trouble spots: overhangs past ~45°, bridges, thin standing features, a large flat sole, inner floors or shelves inside walls ([symptoms-and-fixes.md](references/symptoms-and-fixes.md) §1: a floor line, best removed by a chamfer in the design), narrow places and small bars (gap fill), shallow slopes (stair-steps — `scripts/mesh_slopes.py`, check 15), hollow bottoms or tall narrow parts (brim at once, check 10), a rounded edge that meets the plate tangentially (a ragged band that none of the checks catch — [model-playbook.md](references/model-playbook.md) §2.11).
 - Several parts: an orientation per part and one plate per part unless they are small. `print_sequence = by object` only when every part is lower than the machine's `extruder_clearance_height_to_rod`. Bambu printers have no print queue; plates are handed over one at a time.
 - Look the model type up in [model-playbook.md](references/model-playbook.md) — boxes, rounded shells with lips, grilles, bezels, legs and pins, organic figures, whistles, snap-fits, assemblies, MakerWorld projects — and start from its first choices.
 
@@ -57,7 +57,7 @@ Done when `scripts/bbs_current.py project.3mf` shows the three intended presets 
 
 ### 4. Apply the quality package
 
-Always: `resolution=0.004 slice_closing_radius=0.01` (arc fitting stays on), `precise_outer_wall=1`, the classic wall generator with the preset's wall count, `reduce_crossing_wall=1 max_travel_detour_distance=300`, top pattern by shape (`concentric` for round tops, `monotonic` otherwise). What each costs and why: [slicing-quality.md](references/slicing-quality.md). Then by geometry and symptom: [symptoms-and-fixes.md](references/symptoms-and-fixes.md).
+Always: `resolution=0.004 slice_closing_radius=0.01` (arc fitting stays on), `precise_outer_wall=1`, the classic wall generator with the preset's wall count, `reduce_crossing_wall=1 max_travel_detour_distance=300`, `no_slow_down_for_cooling_on_outwalls=1`, top pattern by shape (`concentric` for round tops, `monotonic` otherwise). What each costs and why: [slicing-quality.md](references/slicing-quality.md). Then by geometry and symptom: [symptoms-and-fixes.md](references/symptoms-and-fixes.md).
 
 Set values as a project variant (`bbs_project.py variant --set key=value`), never as clicking instructions. Trap: when Studio loads a 3MF it resets every key not listed in `different_settings_to_system` to the system preset; `variant` maintains that list, a hand-edited project silently loses its changes.
 

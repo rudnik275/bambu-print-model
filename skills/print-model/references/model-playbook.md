@@ -12,6 +12,7 @@ Vocabulary: **package** = the walls-and-resolution keys applied to every print (
 | Organic figure: lying ribs, backs, domes | `0.12mm Fine`, or `0.20` + height-range modifier (`bbs_project.py ranges`) `0.08` on the shallow-slope band; walls as authored | as authored; tree(auto), z gap 0.24–0.3, xy gap 0.8 | auto brim; seam `back` on faces; run the slope check (15, `scripts/mesh_slopes.py`) before slicing |
 | Box with internal floors, shelves, windows | `0.20mm Standard`, 3 walls + precise wall, wall order `inner/outer` | open side up, no supports | auto brim; seam `aligned` in a corner; chamfer floor and window edges in CAD — settings only soften the band |
 | Hollow bottom, or tall and narrow (footprint < ⅓ of base at h > 40 mm, or h/width > 3.5), or centre of mass outside the first-layer footprint | as needed | as authored | **`brim_type outer_only`, 5 mm, at once** — never "if it comes off" |
+| Rounded edge tangent to the plate (a fillet rolling onto the bed) | as needed; line width 0.5 helps | turn it vertical if the part allows; otherwise a height-range modifier with a thin layer over the bottom 0.28 × R (at 0.20) | offer the CAD chamfer as the alternative and let the user pick — §2.11 |
 | Functional cavity (whistle, flute, air or water channel) | author's layer; thinner only if the air-travel check (16, `scripts/gcode_airtravel.py`) does not worsen | as authored (openings to the bed) | `outer_only` brim; levers: retraction up, temperature to the low end of the calibrated range |
 | Louvred grille | `0.12mm Fine` + `0.08` on the rounded top, 3 walls; slat width = whole extrusion lines | on the straight mating edge, slats vertical; trees only under the dome, support blocker (`scripts/bbs_blocker.py`) over the slat band alone | `outer_only` 4 mm, removed from the mating edge; seam `back` |
 | Screen bezel / frame with a 45° bevel | `0.12mm Fine`, 3 walls, `elefant_foot_compensation 0.15` | flat face down on a textured plate; trees threshold 50° (skips the bevel, reaches the catches) | no brim; seam `back`; keep x ≥ 20 mm from the left bed edge (A1 mini) |
@@ -104,6 +105,46 @@ Layer height is the first choice, not the last: the forecast may send you back o
 - Prototype forecast adds: 0.20 steps visible on the bevel and rounded grille edge; two-line walls over 10 % infill lower the stiffness of thin roof pillars. Support marks are the same. Keep the quality settings-diff as the base for the final material.
 - **Plate order:** cheapest plate first (verifies filament preset and adhesion), then the plate with the thinnest features, then ascending time. The printer has no queue: one plate at a time, next one when the bed is clear.
 
+### 2.11 A rounded edge tangent to the build plate
+
+- **Geometry.** Where a fillet rolls onto the plate it is a 90° overhang exactly, not "almost", and it flattens with
+  height. A line holds if it lands on at least half the line below, so the band that cannot carry itself is
+  **`band = R × (1 − k/√(1+k²))`, `k = line width / (2 × layer height)`**:
+
+  | Layer | Share of R | R 12 mm | R 25 mm |
+  | --- | --- | --- | --- |
+  | 0.28 | 40 % | 4.8 mm | 10.0 mm |
+  | 0.20 | 28 % | 3.3 mm | 6.9 mm |
+  | 0.16 | 20 % | 2.5 mm | 5.1 mm |
+  | 0.12 | 13 % | 1.6 mm | 3.3 mm |
+  | 0.08 | 7 % | 0.8 mm | 1.6 mm |
+
+  Halving the layer more than halves the band — the only lever here with non-linear return. Width 0.5 instead of 0.42
+  takes 28 % down to 22 % at a 0.20 layer.
+- **What it looks like.** A horizontal band of ragged, torn lines, worst where the contour flares fastest and fading to
+  nothing on the flat part of the same wall; above and below it the surface is clean. On a PETG shell (0.20, R 12–20)
+  the band ended at 3.2–3.4 mm as predicted, and for the first 16 layers the contour was also **fragmented into separate
+  islands** (outer-wall bbox width jumping 45 → 0.8 → 43 mm), so the wall kept starting and stopping inside the band.
+- **No check catches it.** `gcode_unsupported.py` reads the band as supported (check 4 blind spot: material rests on the
+  line below, just on 20 % of it) and no feature label changes. Find it on the mesh at step 2, from the fillet radius.
+- **Levers, in order.**
+  1. **Orientation first.** A fillet standing vertical or facing up is free; only the one rolling onto the plate is a
+     problem. Compare overhang and ceiling area over the six axis-aligned positions — do not assume the part can turn
+     (on this shell it could not: on its side the hollow opened downward, and the roof slots became horizontal).
+  2. **A thin layer over the band only** — `bbs_project.py ranges <in> <out> <obj> 0 <band> layer_height=0.08`, the same
+     tool as check 15. Time is paid only inside the band.
+  3. **Line width 0.5.**
+  4. **Leave `enable_overhang_speed` and the overhang fan on.** They are what holds those lines; turning them off for an
+     even sheen (§5) breaks this band first.
+  5. **Supports: measure before adding.** Studio's `tree(auto)` already covered the band here, and
+     `support_remove_small_overhang = 0` changed nothing (interface stayed at 0.2–1.8 mm in both slices, ±13 mm of
+     extrusion). A support under a visible rounded edge buys a rough imprint instead (check 8).
+- **Removing it entirely is a CAD change:** replace the bottom of the fillet with a 45° chamfer tangent to the fillet at
+  the top of the band (≈ 7 mm for R 25). The rounded look survives; the band, the supports under it and the sliver of a
+  first-layer footprint all go at once.
+- **Offer both routes explicitly** — the CAD chamfer, or the thin-layer band — and let the user choose. Never pick one
+  silently: which one is right depends on whether they can still edit the model.
+
 ## 3. The walls-and-resolution package (every preparation, ADR-0003 / ADR-0004)
 
 | Key | Value | Why (measured) |
@@ -114,6 +155,7 @@ Layer height is the first choice, not the last: the forecast may send you back o
 | `precise_outer_wall` | 1 | outer wall printed at true width, not squeezed by the inner one; part of the band cure on the box and the Benchy deck |
 | `wall_generator` | classic | Arachne on a Benchy: gap fill 5.6 % → 0 but bumpy letters, rough roof slats, more sag and stringing — variable-width lines on flow calibrated for 0.42; Arachne only on request or when gap-fill segment count says so (§2.7) |
 | `wall_loops` | preset (2); 3 as lever | third wall: +5–10 % time, +7–10 % plastic, floor-line band gone; smooth hull below looks worse — box/shelf yes, smooth shell by choice |
+| `no_slow_down_for_cooling_on_outwalls` | 1 (Bambu 0) | the layer-time stretch comes out of the inner wall and infill instead of the visible one; measured with the slowdown forced on, outer wall 153 → 181 mm/s and its layer-to-layer spread 31 → 20 mm/s, total time 6:53 → 6:51. The key **is** in Bambu Studio, contrary to what `symptoms-and-fixes.md` used to say |
 | `reduce_crossing_wall` + `max_travel_detour_distance` | 1 / 300 | nozzle does not drag a blob through the outer wall; skull travels −26 %, air length −41 % |
 | `top_surface_pattern` | by shape | concentric on round tops, monotonic elsewhere |
 
