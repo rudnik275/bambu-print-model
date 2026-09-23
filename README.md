@@ -34,6 +34,7 @@ Several plates (an assembly, several materials) are handed over one at a time: B
 - `references/forecast.md` — the 16 checks, thresholds, severity words and levers.
 - `references/slicing-quality.md` — resolution, arc fitting, mesh quality, measured costs.
 - `references/filament-calibration.md` — why and how to calibrate a spool, and how the result becomes a Studio preset.
+- `references/general-practice.md` — general FDM diagnosis and calibration (CN3D knowledge base) translated to Bambu Studio keys: sorting a symptom before changing a setting, drying, layer adhesion, warping, bridges, supports, retraction.
 - `scripts/` — the tools: check a sliced plate for material printed over air (`gcode_unsupported.py`), build and modify Studio projects without the GUI (`bbs_project.py`: retarget a MakerWorld project to your printer, variants, height-range modifiers, sliced-only export; `bbs_blocker.py`: support blockers; `step2stl.py`; `bbs_calib.py`: calibration plates), read a project (`bbs_current.py`, `bbs_resolve.py`), and analyse a sliced plate (`gcode_forecast.py`, `gcode_features.py`, `gcode_layers.py`, `gcode_compare.py`, `gcode_airtravel.py`, `mesh_slopes.py`).
 
 Your own data — calibrated filament presets, the start-G-code snapshot of your printer, your print log — lives with you (`~/.print-model/` and Bambu Studio's user presets), not in the plugin.
