@@ -1,11 +1,17 @@
 {
   "name": "bambu-print-model",
   "description": "Printing know-how for Bambu Lab printers as a Claude Code plugin: prepare any model for printing with a forecast of what will go wrong.",
-  "owner": { "name": "Dmitriy Rudnik", "url": "https://github.com/rudnik275" },
+  "owner": {
+    "name": "Dmitriy Rudnik",
+    "url": "https://github.com/rudnik275"
+  },
   "plugins": [
     {
       "name": "bambu-print-model",
-      "source": "./",
+      "source": {
+        "source": "github",
+        "repo": "rudnik275/bambu-print-model"
+      },
       "description": "Prepare any model for printing on a Bambu Lab printer: orientation, presets, supports, plate splitting, print forecast, filament calibration guide."
     }
   ]
