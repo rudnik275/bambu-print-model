@@ -2,6 +2,8 @@
 
 Distilled from five Factorian Designs videos (2024–2026): "Fix ALL Shrink & Wall Lines", "The Fatal Error No One Talks About", "Crazy 3D Slicer Hacks", "5 Tricks For Incredibly Clean Prints", "Cut Your 3D Printing Time In Half". Setting names are Bambu Studio's; "(Bambu default: X)" in parentheses is the value in Bambu's stock `0.20mm Standard @BBL A1M` process, and where the value lives in the filament preset, "(typical Bambu PLA preset: X)".
 
+For general diagnosis (stringing vs. temperature vs. moisture, ringing vs. VFA vs. Z-banding, warping, layer separation, bridges, surfaces above supports) see `general-practice.md`; this file is about the defects of a correctly calibrated printer.
+
 The author's general principle: **make the print easy for the machine** — long continuous lines, even flow, no tiny extrusions, no unnecessary retractions, no wall crossings. Most "mysterious" defects come from there.
 
 ## 1. Floor line / "box line"

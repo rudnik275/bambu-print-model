@@ -30,6 +30,7 @@ The minimum set, in the order it is measured:
 Beyond that:
 
 - **Retraction distance** — only on a stringing symptom. The machine preset's default is usually enough for a direct-drive extruder (example: a Bambu Lab A1 mini machine preset carries 0.8 mm / 30 mm/s and never needed a change).
+- **Shrinkage** — only when parts must fit something at a known size (a grid, a housing, a second part printed in another material). See 3e.
 - **Pressure advance** — not calibrated. Bambu printers measure flow dynamics themselves before each print; leave `enable_pressure_advance = 0` in the preset. This is a deliberate exception: the video's author calls the automatic flow calibration "unreliable" and cuts it out of the start G-code in favour of one manual K. If part corners start drifting from print to print, this is the first candidate to revisit. What matters if manual PA is ever attempted:
   - a value is correct for exactly one pair of "flow + acceleration"; the further from it, the worse;
   - so it is calibrated at the speed and acceleration of the **outer wall** — what is seen most;
@@ -70,6 +71,8 @@ What to look for: the block with a smooth top **without gaps between the lines**
 Choose the fine pass base so that its −9 … 0 % range brackets the expected value from both sides (example: with a system value of 0.98, a fine pass on a base of 1.02 covers 0.93 → 1.02 in one plate; blocks −5 and −4, 0.969 and 0.979, were even and indistinguishable, −9/−8 had grooves, −2 … 0 bulged → 0.975). The fine pass is worth doing: in another example the coarse pass gave 0 and the fine pass refined it to −2 → 0.98.
 
 **Do not measure wall thickness with calipers.** That measurement catches layer waviness and extrusion scatter, not flow, and is sensitive to the measuring itself. Only the block test.
+
+Sanity range: a calibrated flow ratio almost always lands between **0.92 and 1.00**, usually below 1.00 (CN3D knowledge base). A result outside it means something else is off — wet filament, wrong filament diameter, a partial clog — not that the spool is unusual. Measured on our spools: PLA+ 0.98, matte PLA 0.975, PETG 0.95.
 
 ### 3b. Temperature tower
 
@@ -116,7 +119,15 @@ If the cylinder is clean to the very top, the ceiling was not found. Two ways ou
 
 How far the filament is pulled back between lines — responsible for stringing and clean line starts and ends. `scripts/bbs_calib.py` does not build this plate; use Studio's own test from its Calibration menu (a tower of rings where the retraction distance grows with height).
 
-What to look for: the **first** ring without hairs and blobs, checking at the same time that the seam at that height is clean. Keep the value low: too much retraction gives small holes in the outer wall that look exactly like printing with wet filament. Zero is not allowed.
+What to look for: the **first** ring without hairs and blobs, checking at the same time that the seam at that height is clean. Keep the value low: too much retraction gives small holes in the outer wall that look exactly like printing with wet filament. Zero is not allowed. A needed value above ~1.5 mm on a direct-drive toolhead means retraction is hiding another problem — dry the filament, lower the temperature, check that flow dynamics ran — before going further (general causes: `general-practice.md` §2).
+
+### 3e. Shrinkage — for parts that must fit
+
+Plastic shrinks as it cools, so a part comes out slightly smaller than drawn in X and Y (typical: PLA 0.1–0.3 %, PETG 0.2–0.5 %; brand, colour and moisture move it). It matters for anything that mates at a known size — a grid and the bins that sit in it, a lid, a part in another material — and grows with length: 0.4 % on a 170 mm tile is 0.7 mm.
+
+Key: **`filament_shrink`** in the filament preset (default `100%`). It is the percentage of the drawn size the part comes out at; Studio pre-scales X and Y by the inverse. Measured: `99.5%` made a 60 × 11 mm test bar slice 0.51 % longer and 0.53 % wider; Z is not affected (Bambu Studio 2.8 has no Z shrinkage field).
+
+How: calibrate flow first (flow changes the measured size), then print a long straight bar — 150–200 mm on the bed diagonal or axis, a few mm tall — at 100 % scale; measure end to end with calipers on the top face; `filament_shrink = measured / drawn × 100 %`. Apply it only in the user preset of that spool; recalibrate on a new brand or colour. Do not use it to fix a hole or peg that is too tight — that is local over-extrusion or elephant foot, not shrinkage.
 
 ## 4. From the result to a Studio preset
 
