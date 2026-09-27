@@ -45,8 +45,10 @@ the machine preset (bbs_resolve.py) yields the generic fdm_machine_common placeh
 G-code with an un-indented `M109 S205` and a purge line off the bed, and almost no `M1002`. A project printed
 with it heats to the wrong temperature, skips the nozzle wipe and purges into the void. That is why the real
 blobs come only from a project Bambu Studio itself saved for that printer, stored once with `snapshot`.
-Sanity check on any G-code before printing: `M1002` should appear hundreds of times and `^M109 S205` never;
-an *indented* `M109 S205` inside the filament-change block is part of Bambu's own macro and is fine."""
+Sanity check on any G-code before printing: `M1002` on ~25 lines of the start block (the placeholder has
+almost none) — hundreds in the whole file of a normal print, where the timelapse adds ~3 per layer, but only
+~26 lines in a spiral vase, which gets no timelapse — and `^M109 S205` never; an *indented* `M109 S205` inside
+the filament-change block is part of Bambu's own macro and is fine."""
 import json, os, re, sys, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
