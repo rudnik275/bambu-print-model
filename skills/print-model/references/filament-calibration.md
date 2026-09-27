@@ -12,7 +12,7 @@ A system preset is a good guess for a brand and material class, not for the spoo
 
 - **Flow lines.** Too little flow leaves dark grooves between the extrusion lines on top surfaces; too much gives bulging lines with a glossy wave. Both read as "rough print" and are invisible in the slicer.
 - **Overheating.** Too hot: overhang tips pull up and grow hairs, fine detail smears, stringing increases.
-- **Under-extrusion at speed.** Bambu printers push walls fast (an A1 mini runs them at 200–300 mm/s). A nozzle that is too cold for that flow does not melt the plastic through — overhangs disintegrate into threads, and above the filament's real flow ceiling the wall turns matte and loose. A preset with a max volumetric speed that is too high lets the printer run into that ceiling; one that is too low quietly throttles every print (example: a matte PLA whose system preset said 21 mm³/s printed clean to 26 mm³/s — the preset was conservative; for a PLA+ from the same brand the preset's 12 mm³/s was exact, so this is only known by testing).
+- **Under-extrusion at speed.** Bambu printers push walls fast (an A1 mini runs them at 200–300 mm/s). A nozzle that is too cold for that flow does not melt the plastic through — overhangs disintegrate into threads, and above the filament's real flow ceiling the wall turns matte and loose. A preset with a max volumetric speed that is too high lets the printer run into that ceiling; one that is too low quietly throttles every print (example: two PLAs of one brand — a matte one whose system preset said 21 mm³/s printed clean to 26, a plain one on the brand's PLA+ preset of 12 went loose only at 15; both presets were conservative, by different margins, so this is only known by testing).
 - **Stringing.** Hairs between features on travel moves — a retraction matter, and often mistaken for a temperature one.
 
 Every downstream fix (slicing keys, wall order, speeds) treats a symptom if the filament underneath is wet or uncalibrated; see `slicing-quality.md`, "Symptom → where to look". Even when the system preset turns out almost exact, the test is not wasted: the value is then known, not assumed.
@@ -108,7 +108,7 @@ What to look for: the height of the **first defect** — the wall starts tearing
 
 Example: on a 4 → 30 mm³/s ramp, 10 mm ≈ 8.2, 20 mm ≈ 12.6, 30 mm ≈ 16.9, 40 mm ≈ 21.3, 50 mm ≈ 25.6 mm³/s.
 
-**Selection rule: subtract 10–20 % from the flow at the first defect.** Not "minus one". (Example: a PLA+ went steadily loose from 21 mm = 13 mm³/s at 220 °C → preset 12 — that is −8 %, borderline; at the next recalibration the value should go closer to 11.)
+**Selection rule: subtract 10–20 % from the flow at the first defect.** Not "minus one". (Example: a PLA went loose from 27 mm on a 5 → 28 ramp = 15.3 mm³/s at 220 °C → preset 13, −15 %. An earlier cylinder of the same spool had been read as 13, so a single reading can be off by ~15 %.)
 
 If the cylinder is clean to the very top, the ceiling was not found. Two ways out:
 
@@ -143,13 +143,13 @@ The result is a **user filament preset** in Bambu Studio: a JSON that `inherits`
 scripts/bbs_preset.py filament "<name>" "<inherits>" key=value [key=value ...] [--out dir]
 ```
 
-Example: a SUNLU PLA+ spool calibrated to 220 °C, flow 0.98, MVS 12 mm³/s on an A1 mini:
+Example: a SUNLU PLA spool calibrated to 220 °C, flow 0.98, MVS 13 mm³/s on an A1 mini:
 
 ```
-scripts/bbs_preset.py filament "SUNLU PLA @BBL A1M" "SUNLU PLA+ @BBL A1M" nozzle_temperature=220 filament_flow_ratio=0.98 filament_max_volumetric_speed=12
+scripts/bbs_preset.py filament "SUNLU PLA @BBL A1M" "SUNLU PLA+ @BBL A1M" nozzle_temperature=220 filament_flow_ratio=0.98 filament_max_volumetric_speed=13
 ```
 
-The script writes Studio's own on-disk format: `from: User`, `inherits`, `name`, `filament_settings_id`, `filament_extruder_variant`, and every value as a one-element list (Studio's convention for filament keys); `nozzle_temperature_initial_layer` is copied from `nozzle_temperature` when not given. Studio itself keeps only the keys that differ from the parent (example: with a parent that already had 220 °C and MVS 12, the stored preset ended up holding just `filament_flow_ratio 0.98`).
+The script writes Studio's own on-disk format: `from: User`, `inherits`, `name`, `filament_settings_id`, `filament_extruder_variant`, and every value as a one-element list (Studio's convention for filament keys); `nozzle_temperature_initial_layer` is copied from `nozzle_temperature` when not given. Studio itself keeps only the keys that differ from the parent (example: the parent already had 220 °C, so the stored preset holds no temperature — only `filament_flow_ratio 0.98` and `filament_max_volumetric_speed 13`).
 
 Naming:
 

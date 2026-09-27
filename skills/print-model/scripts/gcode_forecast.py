@@ -115,8 +115,10 @@ def report(d):
     print(f"  warnings: {warn.strip() or '—'}   error: {r.get('error_string')}")
     # start-G-code sanity
     txt = open(g, errors="replace").read()
+    # ~25 M1002 in the start block (+ as many in the footer's copy of machine_start_gcode); timelapse adds ~3 per
+    # layer, none in spiral vase — a vase print totals ~50, not hundreds; the placeholder has ~0
     m1002 = txt.count("M1002"); s205 = len(re.findall(r"^M109 S205", txt, re.M))
-    print(f"  start gcode: M1002 x{m1002}, un-indented `M109 S205` x{s205} -> {'OK (Bambu)' if m1002 > 100 and s205 == 0 else 'WRONG: generic placeholder? (see bbs_project.py snapshot)'}")
+    print(f"  start gcode: M1002 x{m1002}, un-indented `M109 S205` x{s205} -> {'OK (Bambu)' if m1002 >= 20 and s205 == 0 else 'WRONG: generic placeholder? (see bbs_project.py snapshot)'}")
     first_m109 = re.search(r"^M109 S(\d+)", txt, re.M); first_m140 = re.search(r"^M140 S(\d+)", txt, re.M)
     print(f"  first M109 S{first_m109.group(1) if first_m109 else '?'}, M140 S{first_m140.group(1) if first_m140 else '?'}")
     # 12: support share, brim presence
