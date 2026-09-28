@@ -78,6 +78,8 @@ Done when all 16 checks are marked and the forecast block is written — "no sto
 
 Several plates: one file each, handed over in order as the bed becomes free.
 
+Several filaments on one plate: hand over the project `.3mf` instead of a `gcode3mf` file; the user presses **Slice plate** → **Print plate** → Send. A mesh-less file of a 4-colour plate crashed Studio on Print plate (Windows, Studio 2.08.03 beta, A1 without AMS; cause not found), while Studio's own slice of the same project printed.
+
 ### 7. Record
 
 The user keeps their own log. Offer the one thing that grows this skill: after the print, forecast vs. reality — which prediction held, which missed, by how much. A missed threshold is a pull request to `references/forecast.md` with the numbers; a lesson that outlives the model belongs in `references/model-playbook.md`.

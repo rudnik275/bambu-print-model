@@ -24,7 +24,8 @@ def header(path):
             k, v = line[2:].split(" = ", 1); s[k.strip()] = v.strip()
         elif line.startswith("; total layer number:"): s["_layers"] = int(line.split(":")[1])
         elif line.startswith("; model printing time:"): s["_time"] = line.split(":", 1)[1].split(";")[0].strip()
-        elif line.startswith("; total filament weight [g] :"): s["_g"] = float(line.split(":")[1])
+        elif line.startswith("; total filament weight [g] :"):   # one value per filament: "18.28,0.29,0.49"
+            s["_g"] = round(sum(float(v) for v in line.split(":")[1].split(",") if v.strip()), 2)
         elif line.startswith("; EXECUTABLE_BLOCK_START"): break
     return s
 
