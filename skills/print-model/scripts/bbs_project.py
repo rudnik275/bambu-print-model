@@ -11,8 +11,9 @@
                                              move a foreign project (MakerWorld, another printer) onto your
                                              presets: the full preset values are written into the project,
                                              the author's *process* overrides (different_settings_to_system)
-                                             are kept, their filament/machine overrides are dropped. Needs a
-                                             machine G-code snapshot for M (see `snapshot`)
+                                             are kept, their filament/machine overrides are dropped. The result is
+                                             a one-filament plate: a multi-colour project loses its colours. Needs
+                                             a machine G-code snapshot for M (see `snapshot`)
   snapshot <studio-saved.3mf> [slug]         store the trusted machine G-code of a project that Bambu Studio
                                              itself saved: every machine `*_gcode` key of its
                                              Metadata/project_settings.config -> <home>/machine-gcode/<slug>.json
@@ -32,11 +33,12 @@
                                              geometry stripped, plate points at the G-code — Studio then opens
                                              it in Preview with "Print plate" active instead of as a project
 
-Values for --set are written as strings; list-type keys (filament ones) take a single value.
+Values for --set are written as strings; list-type keys (filament ones) take a single value, applied to every
+filament of the project.
 
 Trap (variant): when Studio loads a 3MF it resets every key NOT listed in different_settings_to_system
-(three ";"-joined lists: process; filament; machine) back to the current system preset — an edit that is not
-listed there silently disappears. `variant --set` maintains the list itself; when editing the config by other
+(";"-joined key lists: process; one per filament; machine — 3 entries on a one-filament project, N+2 on N
+filaments) back to the current system preset — an edit that is not listed there silently disappears. `variant --set` maintains the list itself; when editing the config by other
 means, add the key to the right tab's list. A CLI slice (--slice 0 --export-3mf) is the check that the value
 was actually applied.
 
@@ -94,23 +96,28 @@ def variant(inp, out, keep=None, sets=(), title=None):
         cfg = json.loads(files["Metadata/project_settings.config"])
         for k, v in sets:
             if k not in cfg: print("warn: unknown key", k)
-            cfg[k] = [v] if isinstance(cfg.get(k), list) else v
+            cfg[k] = [v] * max(1, len(cfg[k])) if isinstance(cfg.get(k), list) else v
             print(f"set {k} = {cfg[k]}")
-        # Studio marks changed keys per tab in different_settings_to_system = [process, filament, machine]
-        # (";"-joined key names). Keeping it in sync is what makes the value survive loading (see the trap
-        # in the module docstring) and gives the orange "modified" markers in the UI.
+        # Studio marks changed keys per tab in different_settings_to_system = [process, filament 1..N, machine]
+        # (";"-joined key names; N+2 entries). Keeping it in sync is what makes the value survive loading (see the
+        # trap in the module docstring) and gives the orange "modified" markers in the UI.
         from bbs_resolve import resolve
-        fil = cfg.get("filament_settings_id", ["?"]); fil = fil[0] if isinstance(fil, list) else fil
-        bases = [resolve("process", cfg.get("print_settings_id", "")), resolve("filament", fil), resolve("machine", cfg.get("printer_settings_id", ""))]
-        diff = cfg.get("different_settings_to_system") or ["", "", ""]
+        fils = cfg.get("filament_settings_id") or ["?"]; fils = fils if isinstance(fils, list) else [fils]
+        n = len(fils)
+        proc, mach = resolve("process", cfg.get("print_settings_id", "")), resolve("machine", cfg.get("printer_settings_id", ""))
+        fbases = [resolve("filament", x) for x in fils]
+        diff = list(cfg.get("different_settings_to_system") or []); diff += [""] * (n + 2 - len(diff))
         for k, v in sets:
-            hit = [i for i, b in enumerate(bases) if k in b]
-            i = hit[0] if hit else 0                       # keys absent from every base (project-only) count as process
-            base_v = bases[i].get(k); base_v = base_v[0] if isinstance(base_v, list) else base_v
-            if base_v is None or str(base_v) != str(v):
-                keys = [x for x in diff[i].split(";") if x]
-                if k not in keys: keys.append(k)
-                diff[i] = ";".join(keys)
+            # slots and the base each is compared with; keys absent from every base (project-only) count as process
+            if k in proc or not (k in fbases[0] or k in mach): slots = [(0, proc)]
+            elif k in fbases[0]: slots = [(1 + j, fb) for j, fb in enumerate(fbases)]
+            else: slots = [(n + 1, mach)]
+            for i, base in slots:
+                base_v = base.get(k); base_v = base_v[0] if isinstance(base_v, list) else base_v
+                if base_v is None or str(base_v) != str(v):
+                    keys = [x for x in diff[i].split(";") if x]
+                    if k not in keys: keys.append(k)
+                    diff[i] = ";".join(keys)
         cfg["different_settings_to_system"] = diff; print("different_settings_to_system =", diff)
         files["Metadata/project_settings.config"] = json.dumps(cfg, indent=4, ensure_ascii=False).encode()
     _write_zip(out, files); print("written:", out)
@@ -171,17 +178,18 @@ def retarget(inp, out, machine, process=None, filament=None, bed=None):
         cps = base.get("compatible_printers") or []
         if cps and machine not in cps: raise SystemExit(f"{kind} preset '{base['name']}' is not for '{machine}': {cps}")
 
-    # the author's overrides live in different_settings_to_system = [process; filament; machine] (";"-joined).
+    # the author's overrides live in different_settings_to_system = [process; filament 1..N; machine] (";"-joined).
     # Process tweaks describe the model (walls, supports) — keep; filament/machine ones describe their setup — drop.
     # Keys like precise_outer_wall live only in the project (Studio defaults, absent from preset files) — keep those too.
     diff = cfg.get("different_settings_to_system") or ["", "", ""]
     old_n = len(cfg.get("filament_settings_id") or [1])   # the author's filament count (AMS projects: 4)
     keep = [k for k in diff[0].split(";") if k and k in cfg]
     author = {k: cfg[k] for k in keep}
-    dropped = [k for k in diff[0].split(";") if k and k not in cfg] + [k for k in (diff[1] + ";" + diff[2]).split(";") if k]
+    dropped = [k for k in diff[0].split(";") if k and k not in cfg] + [k for k in ";".join(diff[1:]).split(";") if k]
     print("was    :", cfg.get("printer_settings_id"), "/", cfg.get("print_settings_id"), "/", cfg.get("filament_settings_id"))
     print("author :", author or "(no process overrides)")
     if dropped: print("dropped:", dropped)
+    if old_n > 1: print(f"warn   : the project has {old_n} filaments; the result is a one-filament plate — colours are lost")
 
     for base in (m, p, f):
         for k, v in base.items():
@@ -277,8 +285,14 @@ def gcode3mf(inp, out):
             p = p.replace("</plate>", f'  <metadata key="pattern_bbox_file" value="Metadata/plate_{i}.json"/>\n  </plate>')
         keep.append(p)
     files["Metadata/model_settings.config"] = ('<?xml version="1.0" encoding="UTF-8"?>\n<config>\n  ' + "\n  ".join(keep) + "\n</config>\n").encode()
+    # the CLI leaves printer_model_id empty; the code comes from the plate's own printer (A1 mini N1, A1 N2S, ...)
     si = files.get("Metadata/slice_info.config")
-    if si: files["Metadata/slice_info.config"] = si.replace(b'key="printer_model_id" value=""', b'key="printer_model_id" value="N1"')
+    if si and b'key="printer_model_id" value=""' in si:
+        from bbs_resolve import model_id
+        pm = json.loads(files["Metadata/project_settings.config"]).get("printer_model", "")
+        mid = model_id(pm)
+        if mid: files["Metadata/slice_info.config"] = si.replace(b'key="printer_model_id" value=""', b'key="printer_model_id" value="%s"' % mid.encode())
+        else: print(f"warn: no model_id for printer_model {pm!r} — printer_model_id left empty")
     _write_zip(out, files); print("gcode-only 3mf:", out, "plates:", len(keep))
 
 if __name__ == "__main__":

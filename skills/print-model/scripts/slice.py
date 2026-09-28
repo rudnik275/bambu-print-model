@@ -7,7 +7,7 @@ Per project <name>.3mf: <out dir>/<name>/{<name>.gcode.3mf, plate_1.gcode, resul
   <studio> --slice 0 --export-3mf <name>.gcode.3mf --outputdir <out dir>/<name> --debug 0 <project.3mf>
 where <studio> is paths.studio_cli() ($BAMBU_STUDIO_CLI, or the platform default). Then one line per project
 from result.json: error_string, warning_message, model print time h:mm, prep time (total minus model), grams —
-sliced_plates[0].{main_predication, total_predication, filaments[0].total_used_g, warning_message}; with no
+sliced_plates[0].{main_predication, total_predication, sum of filaments[].total_used_g, warning_message}; with no
 result.json, the tail of cli.log. Lines come out in completion order.
 
 A CLI slice is the truth test for any project edit: a key missing from different_settings_to_system, a wrong
@@ -28,7 +28,7 @@ def summarise(name, d):
         return f"{name}: NO result.json" + "".join("\n    " + l for l in tail)
     r = json.load(open(rp)); p = r["sliced_plates"][0]
     prep = p["total_predication"] - p["main_predication"]
-    g = p["filaments"][0]["total_used_g"] if p.get("filaments") else float("nan")
+    g = sum(f["total_used_g"] for f in p["filaments"]) if p.get("filaments") else float("nan")   # all filaments of the plate
     return f"{name}: {r.get('error_string')} | warn: {p.get('warning_message')!r} | model {hm(p['main_predication'])} + prep {hm(prep)} | g: {g:.1f}"
 
 def slice_one(cli, out, proj):

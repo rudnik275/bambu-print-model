@@ -39,6 +39,12 @@ def resolve(kind, name):
     merged["_chain"] = [n for n, _, _ in chain]
     return merged
 
+def model_id(printer_model):
+    """printer code that slice_info.config's printer_model_id carries ('Bambu Lab A1 mini' -> N1, 'Bambu Lab A1' -> N2S):
+    model_id of the machine-model JSON system/BBL/machine/<printer_model>.json; None when there is none"""
+    try: return load("machine", printer_model)[0].get("model_id") if printer_model else None
+    except SystemExit: return None
+
 if __name__ == "__main__":
     if len(sys.argv) < 3 or sys.argv[1] in ("-h", "--help"): sys.exit(__doc__)
     kind, name, keys = sys.argv[1], sys.argv[2], sys.argv[3:]

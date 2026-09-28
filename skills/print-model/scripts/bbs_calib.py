@@ -4,10 +4,10 @@
   bbs_calib.py flow1 <base_project.3mf> <out.3mf>            flow-rate coarse: 9 blocks, -20..+20 %
   bbs_calib.py flow2 <base_project.3mf> <out.3mf> <coarse>   flow-rate fine: 10 blocks, -9..0 % on top of
                                                              the coarse flow ratio (e.g. 0.95)
-  bbs_calib.py fix-sliced <sliced.gcode.3mf> [model_id]     set printer_model_id in a CLI-sliced file. Default N1 = A1 mini;
-                                                             A1 N2S, P1P C11, P1S C12, X1C BL-P001, X1 BL-P002, X1E C13,
-                                                             H2D O1D, H2S O1S (model_id of the machine_model JSON under
-                                                             system/BBL/machine/ in Studio's data dir)
+  bbs_calib.py fix-sliced <sliced.gcode.3mf> [model_id]     set printer_model_id in a CLI-sliced file. Default: the model_id of
+                                                             the file's own printer_model (machine-model JSON under
+                                                             system/BBL/machine/ in Studio's data dir): A1 mini N1, A1 N2S,
+                                                             P1P C11, P1S C12, X1C BL-P001, X1 BL-P002, X1E C13, H2D O1D, H2S O1S
   bbs_calib.py temp <base.3mf> <out.3mf> <tower.stl> <t_hi> <t_lo>   temperature tower project (hot block at the bottom); the
                                                              wizard's full 350-mm tower is cut to the t_hi..t_lo blocks (mesh_cut.py)
   bbs_calib.py inject-temps <sliced.gcode.3mf> <t_hi>       M104 per 10 mm block after CLI slicing
@@ -252,9 +252,14 @@ def speed_ramp(sliced, f_lo, f_hi, z0=0.4, lw=0.42, lh=0.2):
     _write_zip(sliced, files)
     print("speed ramp applied to %d moves; top z %.1f; flow(z) = %g + %g*(z-%g)/%g mm3/s" % (n, top, f_lo, f_hi-f_lo, z0, top-z0))
 
-def fix_sliced(path, model_id="N1"):
+def fix_sliced(path, model_id=None):
     """CLI export leaves printer_model_id empty in slice_info.config; the printer wants it (see the docstring for ids)."""
     f = _read_zip(path); s = f["Metadata/slice_info.config"].decode()
+    if not model_id:
+        from bbs_resolve import model_id as lookup
+        pm = json.loads(f["Metadata/project_settings.config"]).get("printer_model", "")
+        model_id = lookup(pm)
+        if not model_id: raise SystemExit(f"no model_id for printer_model {pm!r}; pass it: fix-sliced <file> <model_id>")
     f["Metadata/slice_info.config"] = s.replace('<metadata key="printer_model_id" value=""/>', f'<metadata key="printer_model_id" value="{model_id}"/>').encode()
     _write_zip(path, f); print("printer_model_id set:", path)
 
@@ -264,7 +269,7 @@ if __name__ == "__main__":
     try:
         if a[0] == "flow1": flow_plate(a[1], a[2], 1)
         elif a[0] == "flow2": flow_plate(a[1], a[2], 2, float(a[3]))
-        elif a[0] == "fix-sliced": fix_sliced(a[1], a[2] if len(a) > 2 else "N1")
+        elif a[0] == "fix-sliced": fix_sliced(a[1], a[2] if len(a) > 2 else None)
         elif a[0] == "temp": temp_plate(a[1], a[2], a[3], int(a[4]), int(a[5]))
         elif a[0] == "inject-temps": inject_temps(a[1], int(a[2]))
         elif a[0] == "speed": speed_plate(a[1], a[2], float(a[3]), float(a[4]), *(float(x) for x in a[5:7]))
