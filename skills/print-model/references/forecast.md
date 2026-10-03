@@ -45,7 +45,7 @@ A **noticeable** item whose lever is a setting, not design or orientation, does 
 
 | Check | Lever (`--set`) | Cost |
 | --- | --- | --- |
-| 3 bridge > 25 mm, 4 overhang | `enable_support=1 support_type=tree(auto) support_on_build_plate_only=1` + gaps `support_top_z_distance=0.2 support_object_xy_distance=0.8` | time, marks (check 8) |
+| 3 bridge > 25 mm, 4 overhang | `enable_support=1 support_on_build_plate_only=1 support_object_xy_distance=0.8`; flat underside → `support_type=normal(auto) support_top_z_distance=0.1` (PLA), organic shape → `support_type=tree(auto) support_top_z_distance=0.2` — trees round the gap to whole layers (`general-practice.md` §7) | time, marks (check 8) |
 | 5 floor line | `wall_loops=3` (precise wall is already in the package): Benchy v3 — the ridge on the deck went away, a box — cleaner walls; **but** a smooth hull below the deck looks worse with three walls (Benchy v1 vs v3 — v1 was preferred), so set it on boxes, trays, parts with shelves, and on housings with a smooth wall offer the choice; if the ridge remains even with three — only a chamfer along the shelf edges in the design | +5–10 % time, the look of a smooth hull |
 | 6 tiny extrusions | **not Arachne by default**: Benchy v2 removed gap fill (5.6 % → 0), but the letters, roof slats and chimney rim became lumpy, lintels sagged more, more stringing — wide variable-width lines on a flow calibrated for 0.42. The lever is wall width 0.5 / `filter_out_gap_fill` (`symptoms-and-fixes.md` §2); Arachne — only on explicit request and as a single variable | — |
 | 10 wobble, weak base | `brim_type=outer_only brim_width=5` | an edge after brim removal |
