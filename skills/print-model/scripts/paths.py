@@ -14,6 +14,12 @@
   home()                  the user's own store: calibrated filament presets, trusted machine G-code snapshots
                           (machine-gcode/<slug>.json, see bbs_project.py snapshot). $PRINT_MODEL_HOME, else ~/.print-model.
 
+OrcaSlicer, for users who slice in Orca (orca.py):
+  orca_data_dir()         $ORCA_DATA, else ~/Library/Application Support/OrcaSlicer, %APPDATA%/OrcaSlicer, ~/.config/OrcaSlicer
+  orca_cli()              $ORCA_CLI, else /Applications/OrcaSlicer.app/Contents/MacOS/OrcaSlicer,
+                          C:/Program Files/OrcaSlicer/orca-slicer.exe, `orca-slicer` on PATH
+  orca_profiles_dir()     Orca's bundled vendor profiles (BBL/, BBL.json). $ORCA_PROFILES, else derived from the executable.
+
 Run without arguments to print what resolves on this machine."""
 import os, shutil, sys
 
@@ -58,6 +64,38 @@ def studio_resources_dir():
 def home():
     return os.path.expanduser(os.environ.get("PRINT_MODEL_HOME") or "~/.print-model")
 
+def orca_data_dir():
+    p = os.environ.get("ORCA_DATA")
+    if p: return os.path.expanduser(p)
+    if sys.platform == "darwin": return os.path.expanduser("~/Library/Application Support/OrcaSlicer")
+    if sys.platform == "win32": return os.path.join(os.environ.get("APPDATA") or os.path.expanduser("~"), "OrcaSlicer")
+    return os.path.expanduser("~/.config/OrcaSlicer")
+
+def orca_cli(required=True):
+    p = os.environ.get("ORCA_CLI")
+    if p:
+        p = shutil.which(p) or os.path.expanduser(p)
+        if os.path.exists(p): return p
+        raise SystemExit(f"ORCA_CLI={p}: no such file")
+    for c in ("/Applications/OrcaSlicer.app/Contents/MacOS/OrcaSlicer", "C:/Program Files/OrcaSlicer/orca-slicer.exe"):
+        if os.path.exists(c): return c
+    w = shutil.which("orca-slicer")
+    if w or not required: return w
+    raise SystemExit("OrcaSlicer executable not found; set ORCA_CLI to its path.")
+
+def orca_profiles_dir():
+    p = os.environ.get("ORCA_PROFILES")
+    if p: return os.path.expanduser(p)
+    cli = orca_cli(required=False); cands = []
+    if cli:
+        d = os.path.dirname(os.path.realpath(cli))
+        cands += [os.path.join(d, "..", "Resources", "profiles"), os.path.join(d, "resources", "profiles")]
+    cands += ["/usr/share/OrcaSlicer/profiles", os.path.join(orca_data_dir(), "system")]
+    for c in cands:
+        if os.path.isfile(os.path.join(c, "BBL.json")): return os.path.normpath(c)
+    raise SystemExit("OrcaSlicer profiles dir (the one holding BBL.json) not found: tried " + ", ".join(cands) +
+                     ". Set ORCA_PROFILES.")
+
 if __name__ == "__main__":
     if sys.argv[1:] and sys.argv[1] in ("-h", "--help"): sys.exit(__doc__)
     def mark(p, kind=os.path.isdir): return f"{p}  {'ok' if p and kind(p) else '(missing)'}"
@@ -66,3 +104,7 @@ if __name__ == "__main__":
     try: print("studio_resources_dir :", mark(studio_resources_dir()))
     except SystemExit as e: print("studio_resources_dir : (missing)", e)
     print("home                 :", mark(home()))
+    print("orca_data_dir        :", mark(orca_data_dir()))
+    print("orca_cli             :", mark(orca_cli(required=False), os.path.exists))
+    try: print("orca_profiles_dir    :", mark(orca_profiles_dir()))
+    except SystemExit: print("orca_profiles_dir    : (missing)")

@@ -15,7 +15,7 @@ The value is in the accumulated experience: which settings suit which kind of mo
 
 Updates: `/plugin marketplace update`, then reinstall or update the plugin.
 
-Requirements: [Bambu Studio](https://bambulab.com/en/download/studio) (its command-line slicer is used for checking and export), [Claude Code](https://claude.com/claude-code), Python 3 and [uv](https://docs.astral.sh/uv/) (a few scripts pull their own dependencies through it). macOS paths are the defaults; on Windows or Linux set `BAMBU_STUDIO_CLI` and `BAMBU_STUDIO_DATA` (see `skills/print-model/scripts/paths.py`). If something is missing, Claude will tell you what.
+Requirements: [Bambu Studio](https://bambulab.com/en/download/studio) (its command-line slicer is used for checking and export), [Claude Code](https://claude.com/claude-code), Python 3 and [uv](https://docs.astral.sh/uv/) (a few scripts pull their own dependencies through it). macOS paths are the defaults; on Windows or Linux set `BAMBU_STUDIO_CLI` and `BAMBU_STUDIO_DATA` (see `skills/print-model/scripts/paths.py`). If something is missing, Claude will tell you what. Slicing in [OrcaSlicer](https://github.com/OrcaSlicer/OrcaSlicer) instead works too — see `references/orca.md`.
 
 ## First print
 
@@ -35,7 +35,8 @@ Several plates (an assembly, several materials) are handed over one at a time: B
 - `references/slicing-quality.md` — resolution, arc fitting, mesh quality, measured costs.
 - `references/filament-calibration.md` — why and how to calibrate a spool, and how the result becomes a Studio preset.
 - `references/general-practice.md` — general FDM diagnosis and calibration (CN3D knowledge base) translated to Bambu Studio keys: sorting a symptom before changing a setting, drying, layer adhesion, warping, bridges, supports, retraction.
-- `scripts/` — the tools: check a sliced plate for material printed over air (`gcode_unsupported.py`), build and modify Studio projects without the GUI (`bbs_project.py`: retarget a MakerWorld project to your printer, variants, height-range modifiers, sliced-only export; `bbs_blocker.py`: support blockers; `step2stl.py`; `bbs_calib.py`: calibration plates), read a project (`bbs_current.py`, `bbs_resolve.py`), and analyse a sliced plate (`gcode_forecast.py`, `gcode_features.py`, `gcode_layers.py`, `gcode_compare.py`, `gcode_airtravel.py`, `mesh_slopes.py`).
+- `references/orca.md` — OrcaSlicer instead of Studio: moving presets over, why the same bridge numbers mean a different bridge there, internal bridges, scarf seam, slicing and sending.
+- `scripts/` — the tools: check a sliced plate for material printed over air (`gcode_unsupported.py`), build and modify Studio projects without the GUI (`bbs_project.py`: retarget a MakerWorld project to your printer, variants, height-range modifiers, sliced-only export; `bbs_blocker.py`: support blockers; `step2stl.py`; `bbs_calib.py`: calibration plates), read a project (`bbs_current.py`, `bbs_resolve.py`), and slice in OrcaSlicer (`orca.py`), and analyse a sliced plate (`gcode_forecast.py`, `gcode_features.py`, `gcode_layers.py`, `gcode_compare.py`, `gcode_airtravel.py`, `mesh_slopes.py`).
 
 Your own data — calibrated filament presets, the start-G-code snapshot of your printer, your print log — lives with you (`~/.print-model/` and Bambu Studio's user presets), not in the plugin.
 
