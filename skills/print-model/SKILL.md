@@ -73,7 +73,7 @@ Done when all 16 checks are marked and the forecast block is written — "no sto
 ### 6. Hand over
 
 1. `bbs_project.py gcode3mf <cli export>.gcode.3mf <name>.gcode.3mf` — strips the geometry; Studio opens a mesh-less file as *sliced* (Preview, **Print plate** active) instead of as a project.
-2. Open it in a Studio that is **already running** (macOS: `open -a BambuStudio file.gcode.3mf`; elsewhere: open the file from Studio or double-click it). A file handed to a cold-starting Studio can hang it without a window. If a project is open, Studio asks "Open as project?" (yes) and "save changes?" (no).
+2. Open it in a Studio that is **already running** (macOS: `open -a BambuStudio file.gcode.3mf`; elsewhere: open the file from Studio or double-click it). A file handed to a cold-starting Studio can hang it without a window. If a project is open, Studio asks "Open as project?" (yes) and "save changes?" (no). Studio does not reload a path it already has open — hand every new version over under a new file name.
 3. Tell the user: the forecast block, then "in Studio: `<name>` → Print plate → Send", and which filament to have loaded. On a *stop* item give the choices instead of the button.
 
 Several plates: one file each, handed over in order as the bed becomes free.

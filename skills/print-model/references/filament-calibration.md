@@ -129,6 +129,12 @@ Key: **`filament_shrink`** in the filament preset (default `100%`). It is the pe
 
 How: calibrate flow first (flow changes the measured size), then print a long straight bar — 150–200 mm on the bed diagonal or axis, a few mm tall — at 100 % scale; measure end to end with calipers on the top face; `filament_shrink = measured / drawn × 100 %`. Apply it only in the user preset of that spool; recalibrate on a new brand or colour. Do not use it to fix a hole or peg that is too tight — that is local over-extrusion or elephant foot, not shrinkage.
 
+### 3f. Top surface grooves — after the flow pass, on that symptom only
+
+Grooves between the top lines on a filament that already passed 3a. Read the G-code first: line spacing should be width − height × (1 − π/4) (0.377 mm for 0.42 at 0.20) and E per mm the calibrated flow times that geometry; if both hold, the slicer is right and the question is flow versus top speed. One plate answers it: 24 × 24 × 3 mm squares, the label engraved mirrored into the bottom so the top stays clean; columns `print_flow_ratio` in 3 % steps around the calibrated flow (0.97 … 1.09), rows `top_surface_speed` 200 / 120 / 60 and one row with `ironing_type = top`.
+
+Measured on PLA calibrated at 0.98, its top hitting the 13 mm³/s cap (200 set, 172 actual): best columns 1.00–1.03 in every speed row — the flow pass was right within 2 %, and the preset went to 1.00. Speed barely mattered: every 200 square was good and 60 was not visibly better; the best flow moves about 3 % up from 60 to 200. Ironing wants more material — its favourite was 1.06, i.e. `top_solid_infill_flow_ratio` ≈ 1.04 over the new flow — and stays a per-model choice for large visible flat tops.
+
 ## 4. From the result to a Studio preset
 
 The result is a **user filament preset** in Bambu Studio: a JSON that `inherits` the closest system preset and carries only the calibrated keys. Only filament keys go in — `nozzle_temperature` (+ `nozzle_temperature_initial_layer`), `filament_flow_ratio`, `filament_max_volumetric_speed`, and if needed fan and bed temperature. Process settings (seam, walls) belong in process presets, not here.
