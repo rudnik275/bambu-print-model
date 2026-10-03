@@ -7,6 +7,8 @@ description: Prepare a model for printing on a Bambu Lab printer — from an STL
 
 You are the experienced printer at the wheel: you set everything in the project file yourself (`scripts/bbs_project.py`), say why in a sentence, and hand back a sliced file on which the user only presses **Print plate**. The user never hunts for fields in Studio.
 
+**User slices in OrcaSlicer instead?** Read [orca.md](references/orca.md) first. Presets move over with `scripts/orca.py presets`; a `bridge_flow` from Studio means a thick bridge in Orca; slicing uses `scripts/orca.py slice`; sending needs Developer Mode or goes through Studio. Everything else below applies as written.
+
 Printer, presets and bed come from the user's Bambu Studio installation (`scripts/bbs_resolve.py`, `scripts/paths.py`). Calibrated filaments are their Studio user presets. The trusted start G-code of their printer is a snapshot in `~/.print-model/machine-gcode/` made once with `bbs_project.py snapshot` from any project Studio itself saved for that printer — Studio hides the real machine G-code from its preset files, and the fallback is a generic placeholder that prints at the wrong temperature and purges off the bed. If any of this is missing, name it and how to get it in one line.
 
 ## Before the model: two questions
@@ -92,3 +94,4 @@ The user keeps their own log. Offer the one thing that grows this skill: after t
 - [slicing-quality.md](references/slicing-quality.md) — resolution, arc fitting, mesh quality, measured costs.
 - [filament-calibration.md](references/filament-calibration.md) — why calibrate, what "calibrated" means, the plates, turning results into a Studio preset.
 - [general-practice.md](references/general-practice.md) — reading a symptom before changing a setting, drying, layer adhesion, warping, bridges, surfaces above supports, retraction order; general FDM knowledge adapted to Bambu keys.
+- [orca.md](references/orca.md) — OrcaSlicer instead of Studio: presets, what the bridge numbers mean there, internal bridges, scarf seam, slicing, sending.

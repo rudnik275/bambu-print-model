@@ -51,7 +51,7 @@ Sanity check on any G-code before printing: `M1002` on ~25 lines of the start bl
 almost none) — hundreds in the whole file of a normal print, where the timelapse adds ~3 per layer, but only
 ~26 lines in a spiral vase, which gets no timelapse — and `^M109 S205` never; an *indented* `M109 S205` inside
 the filament-change block is part of Bambu's own macro and is fine."""
-import json, os, re, sys, zipfile
+import io, json, os, re, sys, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def _read_zip(p):
@@ -65,7 +65,12 @@ def assemble(src, out):
     files = _read_zip(os.path.join(src, ".3mf"))
     objdir = os.path.join(src, "3D", "Objects")
     for f in sorted(os.listdir(objdir)):
-        if f.endswith(".model"): files["3D/Objects/" + f] = open(os.path.join(objdir, f), "rb").read()
+        if not f.endswith(".model"): continue
+        raw = open(os.path.join(objdir, f), "rb").read()
+        if raw[:2] == b"PK":   # Studio 02.08 autosaves each object as its own zip around the .model XML; copied as is,
+            with zipfile.ZipFile(io.BytesIO(raw)) as z:   # neither Studio's nor Orca's loader can parse the project
+                raw = z.read(next(n for n in z.namelist() if n.endswith(".model")))
+        files["3D/Objects/" + f] = raw
     _write_zip(out, files); print("assembled:", out, "objects:", [f for f in files if f.startswith("3D/Objects/")])
 
 def show(p):
