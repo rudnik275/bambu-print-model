@@ -90,6 +90,8 @@ What to look for, per block: wall cleanliness and gloss, the stepped overhang le
 
 Thin hairs on almost every block are not temperature but travels and retraction — a retraction test is separate, if they bother on real parts.
 
+A tower can also come out flat: a plain PLA showed identical walls, ledges and bridges from 205 to 240 °C on the wizard tower and on OrcaSlicer's own tower alike, only the hairs inside the arches growing towards 240. That is a property of the filament, not a broken plate (check that the G-code carries one `M104` per block if in doubt). The temperature is then chosen by the flow ceiling, the one thing in that window that still depends on it — hotter melts faster, so the ceiling is higher: the middle of the label's fast band, 225 °C for that PLA (its ceiling rose 182 → 221 mm/s against 220 °C with a 4 % higher flow).
+
 ### 3c. Max volumetric speed
 
 ```
@@ -108,7 +110,9 @@ What to look for: the height of the **first defect** — the wall starts tearing
 
 Example: on a 4 → 30 mm³/s ramp, 10 mm ≈ 8.2, 20 mm ≈ 12.6, 30 mm ≈ 16.9, 40 mm ≈ 21.3, 50 mm ≈ 25.6 mm³/s.
 
-**Selection rule: subtract 10–20 % from the flow at the first defect.** Not "minus one". (Example: a PLA went loose from 27 mm on a 5 → 28 ramp = 15.3 mm³/s at 220 °C → preset 13, −15 %. An earlier cylinder of the same spool had been read as 13, so a single reading can be off by ~15 %.)
+**Selection rule: subtract 25–30 % from the ramp's number at the first defect.** Not "minus one". (Example: a PLA went loose from 27 mm on a 5 → 28 ramp = 15.3 mm³/s at 220 °C → preset 13 was written as "−15 %"; another spool of the same PLA at 225 °C and flow 0.96: first defect at 39 mm on a 5 → 26 ramp = 16.7 → preset **12**, −28 %. An earlier cylinder of the first spool had been read as 13, so a single reading can be off by ~15 %.)
+
+Why 25–30 % and not the 10–20 % of the general rule: **the ramp's number and the preset's number are not the same speed.** `speed-ramp` computes the feedrate for the nominal rectangle `lw × lh` = 0.42 × 0.2 = 0.084 mm², while the slicer's own line of the same width is a rounded 0.0754 mm², 10 % less. So "ceiling 15.3" on the ramp was 182 mm/s, and "preset 13" caps the wall at 172 mm/s — a 5 % margin where 15 % was intended, with the outer wall of every print running within 5 % of the tearing point. Compare ramp and preset in **mm/s** (preset flow ÷ 0.0754 against the ramp height's feedrate), or keep the 25–30 % on the ramp's number.
 
 If the cylinder is clean to the very top, the ceiling was not found. Two ways out:
 
