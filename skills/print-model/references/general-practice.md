@@ -17,6 +17,7 @@ Most wrong fixes start from a misread symptom. First sort it:
 | Ripples that fade out a few mm **after** a corner | ringing (vibration) | VFA |
 | Even vertical lines over the **whole** wall | VFA — see the interval test below | ringing |
 | Horizontal bands repeating at a fixed height step | Z-banding (lead screw) | floor line — that one sits at one height, at an internal floor (`symptoms-and-fixes.md` §1) |
+| Horizontal bands at the **same heights on every object** of a multi-object plate, ~5 mm apart and slightly irregular; one object printed alone comes out clean | a plate-wide, per-layer cause: the Z axis not returning to the same height after the Z-hop of every travel between objects (a lead screw never lubricated; try `z_hop_types = Normal Lift` and the lubrication schedule), or filament diameter varying with a period in length (the band pitch then scales with filament fed per layer) | the walls' flow, speed or temperature — four cubes printed together at 80–172 mm/s and two flow ratios banded identically, at identical heights |
 | Rough and wavy everywhere | flow ratio too high | |
 | Gaps that are constant through the print | exceeding max volumetric speed, partial clog | |
 | Gaps that get **worse** the longer it prints, recover after cooling | heat creep | |
@@ -24,6 +25,8 @@ Most wrong fixes start from a misread symptom. First sort it:
 | Part too big in X and Y only | flow ratio too high | |
 
 **Interval test for periodic lines** — measure the spacing with calipers: ~2 mm = belt tooth pitch (GT2); ~7 mm = one turn of a 20-tooth pulley; irregular = a bearing. On a bed-slinger note the axis: lines along X-moves point to the X belt, along Y-moves to the Y belt. Horizontal bands every ~2 mm = one turn of a single-start lead screw, ~8 mm = a 4-start screw. None of these are fixed in the slicer; the slicer mitigation is a slower outer wall (below).
+
+**Several objects vs. one** — before blaming the filament preset for horizontal bands, print a few identical cubes (25 × 25 × 30, one per wall speed or flow value, labels on top) and look at where the bands sit. Bands at the same heights on all cubes rule out everything that happens inside a wall; then print one cube alone. A cause tied to the Z height keeps the pitch; one tied to filament length stretches it by the ratio of filament per layer (four cubes 62.6 mm per layer → one cube 15.5 mm: 5.5 mm bands would become ~22 mm); a cause tied to the travels between objects (Z-hop) disappears. The G-code itself is checked first: layer time, fan, temperature and extrusion per layer must be constant over the banded height, otherwise the slicer made the bands.
 
 ## 2. Stringing and retraction
 
