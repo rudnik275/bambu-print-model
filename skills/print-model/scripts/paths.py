@@ -18,7 +18,8 @@ OrcaSlicer, for users who slice in Orca (orca.py):
   orca_data_dir()         $ORCA_DATA, else ~/Library/Application Support/OrcaSlicer, %APPDATA%/OrcaSlicer, ~/.config/OrcaSlicer
   orca_cli()              $ORCA_CLI, else /Applications/OrcaSlicer.app/Contents/MacOS/OrcaSlicer,
                           C:/Program Files/OrcaSlicer/orca-slicer.exe, `orca-slicer` on PATH
-  orca_profiles_dir()     Orca's bundled vendor profiles (BBL/, BBL.json). $ORCA_PROFILES, else derived from the executable.
+  orca_profiles_dir()     Orca 2.4's bundled vendor profiles (BBL/, BBL.json). $ORCA_PROFILES, else derived from the
+                          executable. Orca 2.5 ships <vendor>.opc caches instead and orca.py needs only the data dir.
 
 Run without arguments to print what resolves on this machine."""
 import os, shutil, sys
@@ -107,4 +108,6 @@ if __name__ == "__main__":
     print("orca_data_dir        :", mark(orca_data_dir()))
     print("orca_cli             :", mark(orca_cli(required=False), os.path.exists))
     try: print("orca_profiles_dir    :", mark(orca_profiles_dir()))
-    except SystemExit: print("orca_profiles_dir    : (missing)")
+    except SystemExit: print("orca_profiles_dir    : (missing — fine for Orca 2.5+, which ships .opc caches)")
+    import glob
+    print("orca system caches   :", ", ".join(glob.glob(os.path.join(glob.escape(orca_data_dir()), "system", "*.opc"))) or "(none: Orca 2.4 or never opened)")
