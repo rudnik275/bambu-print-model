@@ -229,6 +229,14 @@ def convert(kind, user, version):
     return out, parity
 
 
+def pending_delete(json_path):
+    """A preset deleted through its .info file (sync_info = delete) keeps its JSON until Studio next starts — weeks, for
+    someone who slices in Orca; carried over, it would come back as an Orca preset."""
+    info = json_path[:-5] + ".info"
+    return os.path.isfile(info) and any(l.split("=", 1)[1].strip() == "delete"
+                                         for l in open(info) if l.startswith("sync_info"))
+
+
 def presets(dry):
     version = vendor_version() if native() else json.load(open(f"{orca_profiles_dir()}/BBL.json"))["version"]
     dest = f"{orca_data_dir()}/user/default"
@@ -236,6 +244,9 @@ def presets(dry):
         for kind in KINDS:
             for f in sorted(glob.glob(f"{glob.escape(d)}{kind}/*.json")):
                 user = json.load(open(f))
+                if pending_delete(f):
+                    print(f"{kind:8s} {user['name']:32s} skipped: marked sync_info = delete, Studio removes it on its next start")
+                    continue
                 out, parity = convert(kind, user, version)
                 print(f"{kind:8s} {user['name']:32s} <- {user['inherits']}   parity: {sorted(parity) or '-'}")
                 if not dry:
