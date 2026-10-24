@@ -27,6 +27,11 @@ def header(path):
         elif line.startswith("; total filament weight [g] :"):   # one value per filament: "18.28,0.29,0.49"
             s["_g"] = round(sum(float(v) for v in line.split(":")[1].split(",") if v.strip()), 2)
         elif line.startswith("; EXECUTABLE_BLOCK_START"): break
+    if "_g" not in s:   # OrcaSlicer writes the weight only in the footer: "; filament used [g] = 152.05"
+        with open(path, "rb") as f:
+            f.seek(0, 2); f.seek(max(0, f.tell() - 1_000_000))
+            m = re.search(rb"; filament used \[g\] = ([\d.,\s]+)", f.read())
+        if m: s["_g"] = round(sum(float(v) for v in m.group(1).decode().split(",") if v.strip()), 2)
     return s
 
 def bed_from_header(h):
