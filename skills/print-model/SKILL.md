@@ -50,7 +50,7 @@ Machine: the user's printer and nozzle. Filament: their calibrated preset. Proce
 | Wish | First choice |
 | --- | --- |
 | fast, prototype, fit check | `0.20mm Standard`, 2 walls, 10 % infill; supports, brims and blockers still wherever the geometry needs them. Measured on a six-plate assembly: 36.5 h → 23.5 h; `0.24mm Draft` gave only −6 % more with worse overhangs — not worth it. |
-| good-looking | `0.12mm Fine` for organic surfaces (stair-steps), `0.16mm High Quality` for flat vertical walls (outer wall 60 mm/s against ripple); 3 walls; seams into corners or to the back; thinner layers only on shallow bands via a height-range modifier (`bbs_project.py ranges`). |
+| good-looking | `0.12mm Fine` for organic surfaces (stair-steps), `0.16mm High Quality` for flat vertical walls (outer wall 60 mm/s against ripple); 3 walls; seams into corners or to the back; thinner layers only on shallow bands via a height-range modifier (`bbs_project.py ranges`), and only where the band runs to the top of the part or crosses no visible vertical wall — mid-height it prints as a visible band around the whole part. |
 | strong | the `Strength` preset of the family, or Standard with more walls and denser gyroid — strength comes from walls, not infill; a 4 mm wall with 3 loops is nearly solid already. |
 
 Layer height is a first pick, not a final one: the forecast (step 5) may send you back here once — thin tops overheating want a thicker layer or a second object as a cooler; stair-steps want a thinner layer on that band only.
